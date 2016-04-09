@@ -1,6 +1,10 @@
 # nanodegree_project6
 Android Nanodegree Project 6
 
+Pre-requisites:
+- Replace API_KEY value in the build.gradle file in app module.
+- Add a config file for google services inside app module.
+
 License
 -------
 Copyright 2015 The Android Open Source Project, Inc.
