@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="background">#000000</color>
-    <color name="background2">#000088</color>
-    <color name="digital_text">#ffffff</color>
+    <color name="sunshine">#03A9F4</color>
+    <color name="afternoon">#FF7043</color>
+    <color name="night">#3F51B5</color>
+    <color name="secondary_text">#CFD8DC</color>
+    <color name="primary_text">#FFFFFF</color>
 </resources>
