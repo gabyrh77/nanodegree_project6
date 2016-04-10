@@ -183,9 +183,9 @@
                 <action android:name="com.google.android.gms.iid.InstanceID" />
             </intent-filter>
         </service>
-        <service
-            android:name=".gcm.RegistrationIntentService"
-            android:exported="false"></service>
+        <service android:name=".gcm.RegistrationIntentService" android:exported="false" />
+
+        <service android:enabled="true" android:exported="false" android:name=".sync.SunshineSyncWearService" />
     </application>
     <meta-data
         android:name="com.google.android.gms.version"

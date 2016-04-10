@@ -38,8 +38,6 @@ import com.example.android.sunshine.app.data.WeatherContract;
 import com.example.android.sunshine.app.muzei.WeatherMuzeiSource;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.wearable.Asset;
 import com.google.android.gms.wearable.DataApi;
 import com.google.android.gms.wearable.PutDataMapRequest;
 import com.google.android.gms.wearable.PutDataRequest;
@@ -57,12 +55,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Date;
 import java.util.Vector;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
-public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener{
+public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter {
     public final String LOG_TAG = SunshineSyncAdapter.class.getSimpleName();
     public static final String ACTION_DATA_UPDATED =
             "com.example.android.sunshine.app.ACTION_DATA_UPDATED";
@@ -98,6 +95,7 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
     public static final int LOCATION_STATUS_INVALID = 4;
 
     private GoogleApiClient mGoogleApiClient;
+    private static final int TIMEOUT_MS = 500;
     private static final String WEATHER_PATH = "/weather";
     private static final String ID_KEY = "weather_id";
     private static final String LOW_KEY = "low_temp";
@@ -106,11 +104,8 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
     public SunshineSyncAdapter(Context context, boolean autoInitialize) {
         super(context, autoInitialize);
         mGoogleApiClient = new GoogleApiClient.Builder(context)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
                 .addApi(Wearable.API)
                 .build();
-        mGoogleApiClient.connect();
     }
 
     @Override
@@ -525,9 +520,11 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
                 }
             }
 
-            Log.d(LOG_TAG, "notify wear app");
+            ConnectionResult result = mGoogleApiClient.blockingConnect(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            Log.d(LOG_TAG, "Google API result: " + result);
+
             if (!mGoogleApiClient.isConnected()) {
-                Log.d(LOG_TAG, "google API not connected");
+                Log.d(LOG_TAG, "Google API not connected");
                 return;
             }
 
@@ -551,21 +548,6 @@ public class SunshineSyncAdapter extends AbstractThreadedSyncAdapter implements 
 
         if (cursor!=null)
             cursor.close();
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        Log.d(LOG_TAG, "Google API Client was connected");
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        Log.d(LOG_TAG, "Google API Client was suspended");
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-        Log.d(LOG_TAG, "Google API Client connection failed");
     }
 
     /**

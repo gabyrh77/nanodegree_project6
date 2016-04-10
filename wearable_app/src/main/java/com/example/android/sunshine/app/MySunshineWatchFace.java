@@ -48,11 +48,14 @@ import com.google.android.gms.wearable.DataEventBuffer;
 import com.google.android.gms.wearable.DataItem;
 import com.google.android.gms.wearable.DataMap;
 import com.google.android.gms.wearable.DataMapItem;
+import com.google.android.gms.wearable.Node;
 import com.google.android.gms.wearable.NodeApi;
+import com.google.android.gms.wearable.PutDataRequest;
 import com.google.android.gms.wearable.Wearable;
 
 import java.lang.ref.WeakReference;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.TimeUnit;
@@ -433,32 +436,31 @@ public class MySunshineWatchFace extends CanvasWatchFaceService {
 
         private void fetchDataMap() {
             Log.d(TAG, "fetchDataMap");
-            Wearable.NodeApi.getLocalNode(mGoogleApiClient).setResultCallback(
-                    new ResultCallback<NodeApi.GetLocalNodeResult>() {
+            Wearable.NodeApi.getConnectedNodes(mGoogleApiClient).setResultCallback(
+                    new ResultCallback<NodeApi.GetConnectedNodesResult>() {
                         @Override
-                        public void onResult(NodeApi.GetLocalNodeResult getLocalNodeResult) {
-                            Log.d(TAG, "fetchDataMap onResult");
-                            String localNode = getLocalNodeResult.getNode().getId();
-                            Uri uri = new Uri.Builder().scheme("wear").path(WEATHER_PATH)
-                                    .authority(localNode)
-                                    .build();
-                            Wearable.DataApi.getDataItem(mGoogleApiClient, uri).setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
-                                @Override
-                                public void onResult(DataApi.DataItemResult dataItemResult) {
-                                    Log.d(TAG, "getDataItem onResult: " + dataItemResult.getStatus().getStatusMessage());
-                                    if (dataItemResult.getStatus().isSuccess()) {
-                                        if (dataItemResult.getDataItem() != null) {
-                                            Log.d(TAG, "Event received on fetch: " + dataItemResult.getDataItem().getUri());
-                                            DataItem configDataItem = dataItemResult.getDataItem();
-                                            DataMapItem dataMapItem = DataMapItem.fromDataItem(configDataItem);
-                                            updateUiWithDataMap(dataMapItem.getDataMap());
+                        public void onResult(NodeApi.GetConnectedNodesResult getNodesResult) {
+                            List<Node> nodes = getNodesResult.getNodes();
+                            if (nodes.size() > 0) {
+                                String remoteNode = nodes.get(0).getId();
+                                Uri uri = new Uri.Builder().scheme(PutDataRequest.WEAR_URI_SCHEME).path(WEATHER_PATH)
+                                        .authority(remoteNode)
+                                        .build();
+                                Wearable.DataApi.getDataItem(mGoogleApiClient, uri).setResultCallback(new ResultCallback<DataApi.DataItemResult>() {
+                                    @Override
+                                    public void onResult(DataApi.DataItemResult dataItemResult) {
+                                        if (dataItemResult.getStatus().isSuccess() && dataItemResult.getDataItem() != null) {
+                                                Log.d(TAG, "Event received on fetch: " + dataItemResult.getDataItem().getUri());
+                                                DataItem configDataItem = dataItemResult.getDataItem();
+                                                DataMapItem dataMapItem = DataMapItem.fromDataItem(configDataItem);
+                                                updateUiWithDataMap(dataMapItem.getDataMap());
                                         }
                                     }
-                                }
-                            });
+                                });
+                            }
                         }
                     }
-            );
+             );
         }
     }
 }
